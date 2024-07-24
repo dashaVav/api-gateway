@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: application
+          uri: http://localhost:8093
+          predicates:
+            - Path=/application
+            - Method=POST
+        - id: application-apply
+          uri: http://localhost:8093
+          predicates:
+            - Path=/application/apply
+            - Method=PUT
+          filters:
+            - RewritePath=/application/apply, /application/offer
+        - id: application-registration
+          uri: http://localhost:8092
+          predicates:
+            - Path=/application/registration/{applicationId}
+            - Method=PUT
+          filters:
+            - RewritePath=/application/registration/(?<applicationId>.*), /deal/calculate/${applicationId}
+        - id: document-send
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}
+            - Method=POST
+          filters:
+            - RewritePath=/document/(?<applicationId>.*), /deal/document/${applicationId}/send
+        - id: document-sign
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}/sign
+            - Method=POST
+          filters:
+            - RewritePath=/document/(?<applicationId>.*)/sign, /deal/document/${applicationId}/sign
+        - id: document-code
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}/sign/code
+            - Method=POST
+          filters:
+            - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
+
+server:
+  port: 8095
