@@ -1,4 +1,6 @@
 spring:
+  main:
+    web-application-type: reactive
   application:
     name: api-gateway
   cloud:
@@ -9,12 +11,21 @@ spring:
           predicates:
             - Path=/application
             - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
         - id: application-apply
           uri: http://localhost:8093
           predicates:
             - Path=/application/apply
             - Method=PUT
           filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
             - RewritePath=/application/apply, /application/offer
         - id: application-registration
           uri: http://localhost:8092
@@ -22,6 +33,10 @@ spring:
             - Path=/application/registration/{applicationId}
             - Method=PUT
           filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
             - RewritePath=/application/registration/(?<applicationId>.*), /deal/calculate/${applicationId}
         - id: document-send
           uri: http://localhost:8092
@@ -29,6 +44,10 @@ spring:
             - Path=/document/{applicationId}
             - Method=POST
           filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*), /deal/document/${applicationId}/send
         - id: document-sign
           uri: http://localhost:8092
@@ -36,6 +55,10 @@ spring:
             - Path=/document/{applicationId}/sign
             - Method=POST
           filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign, /deal/document/${applicationId}/sign
         - id: document-code
           uri: http://localhost:8092
@@ -43,6 +66,10 @@ spring:
             - Path=/document/{applicationId}/sign/code
             - Method=POST
           filters:
+            - name: CircuitBreaker
+              args:
+                name: default-fallback
+                fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
 
 server:
