@@ -14,7 +14,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
         - id: application-apply
           uri: http://localhost:8093
@@ -24,7 +24,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/application/apply, /application/offer
         - id: application-registration
@@ -35,7 +35,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/application/registration/(?<applicationId>.*), /deal/calculate/${applicationId}
         - id: document-send
@@ -46,7 +46,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*), /deal/document/${applicationId}/send
         - id: document-sign
@@ -57,7 +57,7 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign, /deal/document/${applicationId}/sign
         - id: document-code
@@ -68,9 +68,31 @@ spring:
           filters:
             - name: CircuitBreaker
               args:
-                name: default-fallback
+                name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
 
 server:
   port: 8095
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: count_based
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        minimum-number-of-calls: 3
+    instances:
+      default-circuit-breaker:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+    instances:
+      default-circuit-breaker:
+        base-config: default
