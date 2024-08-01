@@ -7,7 +7,7 @@ spring:
     gateway:
       routes:
         - id: application
-          uri: http://application:8093
+          uri: http://localhost:8093
           predicates:
             - Path=/application
             - Method=POST
@@ -17,7 +17,7 @@ spring:
                 name: default-circuit-breaker
                 fallbackUri: forward:/fallback
         - id: application-apply
-          uri: http://application:8093
+          uri: http://localhost:8093
           predicates:
             - Path=/application/apply
             - Method=PUT
@@ -28,7 +28,7 @@ spring:
                 fallbackUri: forward:/fallback
             - RewritePath=/application/apply, /application/offer
         - id: application-registration
-          uri: http://deal:8092
+          uri: http://localhost:8092
           predicates:
             - Path=/application/registration/{applicationId}
             - Method=PUT
@@ -39,7 +39,7 @@ spring:
                 fallbackUri: forward:/fallback
             - RewritePath=/application/registration/(?<applicationId>.*), /deal/calculate/${applicationId}
         - id: document-send
-          uri: http://deal:8092
+          uri: http://localhost:8092
           predicates:
             - Path=/document/{applicationId}
             - Method=POST
@@ -50,7 +50,7 @@ spring:
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*), /deal/document/${applicationId}/send
         - id: document-sign
-          uri: http://deal:8092
+          uri: http://localhost:8092
           predicates:
             - Path=/document/{applicationId}/sign
             - Method=POST
@@ -61,7 +61,7 @@ spring:
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign, /deal/document/${applicationId}/sign
         - id: document-code
-          uri: http://deal:8092
+          uri: http://localhost:8092
           predicates:
             - Path=/document/{applicationId}/sign/code
             - Method=POST
