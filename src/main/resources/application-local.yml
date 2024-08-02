@@ -72,6 +72,10 @@ spring:
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
 
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
 server:
   port: 8095
 
