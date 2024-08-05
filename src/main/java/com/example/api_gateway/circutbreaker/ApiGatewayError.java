@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ApiGatewayException {
+public class ApiGatewayError {
     private String error;
     private int status;
 }
