@@ -1,7 +1,7 @@
 package com.example.api_gateway.filter;
 
-
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.ReactiveAuthenticationManager;
@@ -18,7 +18,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.function.Function;
 
-
 @Configuration
 @EnableWebFluxSecurity
 @RequiredArgsConstructor
@@ -29,15 +28,21 @@ public class SecurityConfiguration {
                 .csrf(ServerHttpSecurity.CsrfSpec::disable)
                 .authorizeExchange(
                         request -> request
-                                .pathMatchers("/**").hasRole("USER")
+                                .pathMatchers("/login", "/registration").permitAll()
+                                .pathMatchers("/admin/**").hasRole("ADMIN")
                                 .pathMatchers("/error").permitAll()
-                                .anyExchange().authenticated()
+                                .anyExchange().hasRole("USER")
                 )
                 .addFilterAt(bearerAuthenticationFilter(), SecurityWebFiltersOrder.AUTHENTICATION)
                 .httpBasic(Customizer.withDefaults());
-
         return http.build();
     }
+
+    @Value("${api.auth.check-token-path}")
+    private String tokenCheckPath;
+
+    @Value("${api.auth.base-url}")
+    private String baseUrl;
 
     private AuthenticationWebFilter bearerAuthenticationFilter() {
         AuthenticationWebFilter bearerAuthenticationFilter;
@@ -46,7 +51,7 @@ public class SecurityConfiguration {
 
         authManager = new BearerTokenReactiveAuthenticationManager();
         bearerAuthenticationFilter = new AuthenticationWebFilter(authManager);
-        bearerConverter = new ServerHttpBearerAuthenticationConverter();
+        bearerConverter = new ServerHttpBearerAuthenticationConverter(new AuthClient(baseUrl), tokenCheckPath);
 
         bearerAuthenticationFilter.setAuthenticationConverter(bearerConverter);
         bearerAuthenticationFilter.setRequiresAuthenticationMatcher(ServerWebExchangeMatchers.anyExchange());
