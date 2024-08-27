@@ -115,6 +115,46 @@ spring:
                 name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=admin/application, /deal/admin/application
+        - id: get-audit-action-by-uuid
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/{uuid}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-audit-actions-by-type
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/type/{type}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-audit-actions-by-service
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/service/{serviceDTO}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-all-audit-actions
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
 
 api:
   auth:
