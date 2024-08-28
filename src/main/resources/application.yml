@@ -146,7 +146,7 @@ spring:
                 name: default-circuit-breaker
                 fallbackUri: forward:/fallback
         - id: get-all-audit-actions
-          uri: http://localhost:8097
+          uri: http://audit:8097
           predicates:
             - Path=/audit
             - Method=GET
