@@ -30,6 +30,7 @@ public class SecurityConfiguration {
                         request -> request
                                 .pathMatchers("/login", "/registration").permitAll()
                                 .pathMatchers("/admin/**").hasRole("ADMIN")
+                                .pathMatchers("/audit", "/audit/**").hasRole("ADMIN")
                                 .pathMatchers("/error").permitAll()
                                 .anyExchange().hasRole("USER")
                 )
