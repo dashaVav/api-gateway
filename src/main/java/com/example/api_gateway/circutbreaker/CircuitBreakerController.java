@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class CircuitBreakerController {
-    @RequestMapping(path = "/fallback", method = {RequestMethod.PUT, RequestMethod.POST})
+    @RequestMapping(path = "/fallback", method = {RequestMethod.PUT, RequestMethod.POST, RequestMethod.GET})
     public ResponseEntity<ApiGatewayError> fallback() {
         HttpStatus status = HttpStatus.SERVICE_UNAVAILABLE;
         return new ResponseEntity<>(

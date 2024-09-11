@@ -71,6 +71,55 @@ spring:
                 name: default-circuit-breaker
                 fallbackUri: forward:/fallback
             - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
+        - id: login
+          uri: http://localhost:8096
+          predicates:
+            - Path=/login
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/login, /auth/login
+        - id: registration
+          uri: http://localhost:8096
+          predicates:
+            - Path=/registration
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/registration, /auth/registration
+        - id: get-application-by-id
+          uri: http://localhost:8092
+          predicates:
+            - Path=/admin/application/{applicationId}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=admin/application/(?<applicationId>.*), /deal/admin/application/${applicationId}
+        - id: get-all-applications
+          uri: http://localhost:8092
+          predicates:
+            - Path=/admin/application
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=admin/application, /deal/admin/application
+
+api:
+  auth:
+    base-url: http://localhost:8096
+    check-token-path: /auth/check
 
 logging:
   level:
