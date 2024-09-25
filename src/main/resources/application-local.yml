@@ -1,0 +1,205 @@
+spring:
+  main:
+    web-application-type: reactive
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: application
+          uri: http://localhost:8093
+          predicates:
+            - Path=/application
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: application-apply
+          uri: http://localhost:8093
+          predicates:
+            - Path=/application/apply
+            - Method=PUT
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/application/apply, /application/offer
+        - id: application-registration
+          uri: http://localhost:8092
+          predicates:
+            - Path=/application/registration/{applicationId}
+            - Method=PUT
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/application/registration/(?<applicationId>.*), /deal/calculate/${applicationId}
+        - id: document-send
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/document/(?<applicationId>.*), /deal/document/${applicationId}/send
+        - id: document-sign
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}/sign
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/document/(?<applicationId>.*)/sign, /deal/document/${applicationId}/sign
+        - id: document-code
+          uri: http://localhost:8092
+          predicates:
+            - Path=/document/{applicationId}/sign/code
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/document/(?<applicationId>.*)/sign/code, /deal/document/${applicationId}/code
+        - id: login
+          uri: http://localhost:8096
+          predicates:
+            - Path=/login
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/login, /auth/login
+        - id: registration
+          uri: http://localhost:8096
+          predicates:
+            - Path=/registration
+            - Method=POST
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=/registration, /auth/registration
+        - id: get-application-by-id
+          uri: http://localhost:8092
+          predicates:
+            - Path=/admin/application/{applicationId}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=admin/application/(?<applicationId>.*), /deal/admin/application/${applicationId}
+        - id: get-all-applications
+          uri: http://localhost:8092
+          predicates:
+            - Path=/admin/application
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+            - RewritePath=admin/application, /deal/admin/application
+        - id: get-audit-action-by-uuid
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/{uuid}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-audit-actions-by-type
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/type/{type}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-audit-actions-by-service
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit/service/{serviceDTO}
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+        - id: get-all-audit-actions
+          uri: http://localhost:8097
+          predicates:
+            - Path=/audit
+            - Method=GET
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: default-circuit-breaker
+                fallbackUri: forward:/fallback
+
+api:
+  auth:
+    base-url: http://localhost:8096
+    check-token-path: /auth/check
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+
+server:
+  port: 8095
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        sliding-window-type: count_based
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+        minimum-number-of-calls: 3
+    instances:
+      default-circuit-breaker:
+        base-config: default
+  timelimiter:
+    configs:
+      default:
+        timeout-duration: 5s
+    instances:
+      default-circuit-breaker:
+        base-config: default
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,prometheus
+  metrics:
+    distribution:
+      percentiles-histogram:
+        "[http.server.requests]": true
+  prometheus:
+    metrics:
+      export:
+        enabled: true
